@@ -49,10 +49,10 @@ exports.helloWorld = functions.https.onRequest(async (request, response) => {
 
 exports.getRichQuick = functions
   .runWith({ memory: '4GB' })
-  .pubsub.schedule('0 10 * * 1-5')
+  .pubsub.schedule('0 0 12 ? * MON *')
   .timeZone('America/New_York')
   .onRun(async (ctx) => {
-    console.log('This will run M-F at 10:00 AM Eastern!');
+    console.log('This will run Mondays at 12:00 PM Eastern!');
 
     const tweets = await scrape();
 
