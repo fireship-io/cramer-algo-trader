@@ -68,7 +68,10 @@ exports.getRichQuick = functions
     const stocksToBuy = gptCompletion.data.choices[0].text.match(/\b[A-Z]+\b/g);
     console.log(`Thanks for the tips Jim! ${stocksToBuy}`);
 
-    if (!stocksToBuy) {
+    const holdingStonk = await alpaca.getPositions().at(0).symbol; // assuming there's only 1 open position
+    const shouldTradeToday = !(stocksToBuy.includes(holdingStonk));
+
+    if (!stocksToBuy || !shouldTradeToday) {
       console.log('sitting this one out');
       return null;
     }
