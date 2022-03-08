@@ -82,6 +82,9 @@ exports.getRichQuick = functions
     // get account
     const account = await alpaca.getAccount();
     console.log(`dry powder: ${account.buying_power}`);
+    // get current info about stock
+    const stock = await alpaca.getAsset(stocksToBuy[0])
+    console.log(`this is the current info about the stock being bought ${stock}`);
 
     // place order
     const order = await alpaca.createOrder({
@@ -91,6 +94,10 @@ exports.getRichQuick = functions
       side: 'buy',
       type: 'market',
       time_in_force: 'day',
+      stop_loss: {
+        stop_price: stock.price * 0.9, // sells stock if tanks by 10%
+        limit_price: stock.price * 0.89 // limit should always be a little lower than stop price because of market ineffiences 
+      }
     });
 
     console.log(`look mom i bought stonks: ${order.id}`);
