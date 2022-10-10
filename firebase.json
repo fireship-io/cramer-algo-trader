@@ -1,1 +1,17 @@
-{}
+{
+  "functions": {
+    "source": "functions"
+  },
+  "emulators": {
+    "functions": {
+      "port": 5002
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true,
+    "pubsub": {
+      "port": 8086
+    }
+  }
+}
