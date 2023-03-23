@@ -20,7 +20,7 @@ const alpaca = new Alpaca({
 
 const puppeteer = require('puppeteer');
 
-async function scrape() {
+/*async function scrape() {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
@@ -40,7 +40,74 @@ async function scrape() {
 
   return tweets;
 }
+*/
 
+async function autoScroll(page){
+  await page.evaluate(async () => {
+      await new Promise((resolve, reject) => {
+          var totalHeight = 0;
+          var distance = 100;
+          var timer = setInterval(() => {
+              var scrollHeight = 10000; //document.body.scrollHeight;
+              window.scrollBy(0, distance);
+              totalHeight += distance;
+
+              if(totalHeight >= scrollHeight - window.innerHeight){
+                  clearInterval(timer);
+                  resolve();
+              }
+          }, 100);
+      });
+  });
+}
+async function scrape() {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  await page.goto('https://twitter.com/jimcramer', {
+    waitUntil: 'networkidle2',
+  });
+
+  await page.setViewport({
+    width: 1200,
+    height: 800
+});
+
+  await page.waitForTimeout(3000);
+
+  // await page.screenshot({ path: './puppeteerArtifacts/example.png' });
+
+
+  let divs = await page.$$('div[data-testid="cellInnerDiv"]')
+
+  console.log(divs.length)
+
+  await autoScroll(page)
+
+  let newDivs = await page.$$('div[data-testid="cellInnerDiv"]')
+
+  newDivs.forEach( (div)  => divs.push(div))
+
+  console.log(divs.length)
+
+  const tweets = new Array();
+
+  for (const div of divs) {
+    const innerText = await div.evaluate((x) => x.innerText)
+    if (!innerText.includes("Pinned Tweet")) {
+      const innerTextArray = innerText.split("\n")
+      const tweetText = innerTextArray.slice(4, -2).join(" ")
+  
+      console.log("\nTweet")
+      console.log(tweetText)
+      tweets.push(tweetText)
+    }
+  }
+
+  await browser.close();
+
+  return tweets;
+};
 exports.helloWorld = functions.https.onRequest(async (request, response) => {
   // test logic here
 
@@ -56,7 +123,7 @@ exports.getRichQuick = functions
 
     const tweets = await scrape();
 
-    const gptCompletion = await openai.createCompletion('text-davinci-001', {
+    const gptCompletion = await openai.createCompletion('text-davinci-003', {
       prompt: `${tweets} Jim Cramer recommends selling the following stock tickers: `,
       temperature: 0.7,
       max_tokens: 32,
